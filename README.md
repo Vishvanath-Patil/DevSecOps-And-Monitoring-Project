@@ -351,8 +351,9 @@ sudo su
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
 
-
 ```
+![image](https://github.com/Vishvanath-Patil/DevSecOps-And-Monitoring-Project/assets/130968991/885a0bb7-9c09-4dc3-9e8f-e4001440ab74)
+
 
 **Phase 4: Monitoring**
 
