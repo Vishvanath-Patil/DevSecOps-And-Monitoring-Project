@@ -90,8 +90,7 @@ docker build --build-arg TMDB_V3_API_KEY=<your-api-key> -t netflix .
      -v sonarqube_extensions:/opt/sonarqube/extensions \
      sonarqube:lts-community
   ```
-Verify restart policy
-  ```
+Verify restart policy: 
     docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' sonar
   ```    
         
