@@ -754,6 +754,141 @@ To deploy an application with ArgoCD, you can follow these steps, which I'll out
 4. **Access your Application**
    - To Access the app make sure port 30007 is open in your security group and then open a new tab paste your NodeIP:30007, your app should be running.
 
+Domain Mapping and Auto-Restart for Jenkins, SonarQube & Netflix App on EC2
+
+This guide explains how to map custom domains to Jenkins, SonarQube, and a Netflix app running on an EC2 instance. It also ensures all services restart automatically after a reboot.
+
+✅ Step 1: Set Up DNS Records
+
+If you're using Route 53 or another DNS provider, create subdomain records pointing to your EC2 public or Elastic IP:
+
+Subdomain
+
+Points To
+
+Purpose
+
+sonar.yourdomain.com
+
+EC2 IP Address
+
+SonarQube
+
+jenkins.yourdomain.com
+
+EC2 IP Address
+
+Jenkins
+
+netflix.yourdomain.com
+
+EC2 IP Address
+
+Netflix Clone
+
+For AWS Route 53:
+
+Create an A Record or CNAME for each subdomain.
+
+✅ Step 2: Install & Configure NGINX Reverse Proxy
+
+Install NGINX:
+
+sudo apt update
+sudo apt install nginx
+
+Create NGINX Configs for Each Subdomain
+
+/etc/nginx/sites-available/sonar
+
+server {
+    listen 80;
+    server_name sonar.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:9000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+/etc/nginx/sites-available/jenkins
+
+server {
+    listen 80;
+    server_name jenkins.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+/etc/nginx/sites-available/netflix
+
+server {
+    listen 80;
+    server_name netflix.yourdomain.com;
+
+    location / {
+        proxy_pass http://localhost:8081;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+Enable Sites & Reload NGINX
+
+sudo ln -s /etc/nginx/sites-available/sonar /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/jenkins /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/netflix /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx
+
+✅ Step 3: Auto-Restart Containers on EC2 Reboot
+
+Enable Docker containers to restart automatically:
+
+docker update --restart always sonar
+docker update --restart always jenkins
+docker update --restart always netflix
+
+This ensures they start automatically when the EC2 instance reboots.
+
+✅ Step 4 (Optional): Secure Domains with HTTPS (Let's Encrypt)
+
+Install Certbot:
+
+sudo apt install certbot python3-certbot-nginx
+
+Get SSL Certificates:
+
+sudo certbot --nginx
+
+Follow the prompts to enable HTTPS for each mapped domain.
+
+✅ Final Verification
+
+Visit: http://sonar.yourdomain.com
+
+Visit: http://jenkins.yourdomain.com
+
+Visit: http://netflix.yourdomain.com
+
+(Replace http:// with https:// if using SSL)
+
+🧠 Notes
+
+Replace yourdomain.com with your actual domain name.
+
+Use Elastic IPs for EC2 to avoid changing IP after restarts.
+
+For production, configure firewalls and security groups appropriately.
+
+
+
+
 **Phase 7: Cleanup**
 
 1. **Cleanup AWS EC2 Instances:**
