@@ -78,12 +78,24 @@ docker build --build-arg TMDB_V3_API_KEY=<your-api-key> -t netflix .
 
 1. **Install SonarQube and Trivy:**
     - Install SonarQube and Trivy on the EC2 instance to scan for vulnerabilities.
+    - To keep your SonarQube container running across EC2 reboots, you need to configure it to auto-start on system boot using Docker's restart policies. You also might want to persist data so you don’t lose configuration and scan history.
         
         sonarqube
-        ```
-        docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
-        ```
-        
+   ```bash
+        # docker run -d --name sonar -p 9000:9000 sonarqube:lts-community
+docker run -d \
+  --name sonar \
+  --restart unless-stopped \
+  -p 9000:9000 \
+  -v sonarqube_data:/opt/sonarqube/data \
+  -v sonarqube_extensions:/opt/sonarqube/extensions \
+  sonarqube:lts-community
+  ```
+
+- Verify restart policy
+  ```
+ docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' sonar
+  ```    
         
         To access: 
         
