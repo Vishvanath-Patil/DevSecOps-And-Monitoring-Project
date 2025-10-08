@@ -1,0 +1,12 @@
+groups:
+  - name: cpu-alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle",instance!~"10.28.17.28:9100"}[5m]))) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage (>80%) detected"
+          description: "CPU usage is {{ printf \"%.2f\" $value }}% on instance {{ $labels.instance }}"
+          cpu_usage: "{{ printf \"%.2f\" $value }}"
