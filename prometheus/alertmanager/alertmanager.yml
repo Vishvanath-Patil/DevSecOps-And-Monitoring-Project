@@ -1,0 +1,172 @@
+global:
+  smtp_smarthost: 'smtp.office365.com:587'
+  smtp_from: 'grafana_alerts@xyz.com'
+  smtp_auth_username: 'grafana_alerts@xyz.com'
+  smtp_auth_password: 'password'
+
+templates:
+  - '/etc/alertmanager/templates/custom_cpu.tmpl'
+  - '/etc/alertmanager/templates/custom_memory.tmpl'
+  - '/etc/alertmanager/templates/custom_disk.tmpl'
+  - '/etc/alertmanager/templates/aws2_custom_cpu.tmpl'
+  - '/etc/alertmanager/templates/aws2_custom_memory.tmpl'
+  - '/etc/alertmanager/templates/aws2_custom_disk.tmpl'
+  - '/etc/alertmanager/templates/custom_down.tmpl'
+  - '/etc/alertmanager/templates/vts_connector.tml'
+  - '/etc/alertmanager/templates/custom_issuance.tmpl'
+  - '/etc/alertmanager/templates/custom_logstale_mrsp.tmpl'
+  - '/etc/alertmanager/templates/custom_logstale_tcib.tmpl'
+  - '/etc/alertmanager/templates/custom_tomcat.tmpl' 
+
+route:
+  group_by: ['instance']
+  group_wait: 10s
+  group_interval: 1m
+  repeat_interval: 1h
+  receiver: email-receiver  # default receiver
+  routes:
+    - match_re:
+        alertname: HighCPUUsage
+      receiver: email-receiver
+
+    - match_re:
+        alertname: HighMemoryUsage
+      receiver: email-receiver-memory
+
+    - match_re:
+        alertname: HighDiskUsage
+      receiver: email-receiver-disk
+
+    - match:
+        alertname: AWS2HighCPUUsage
+      receiver: aws2-email-receiver-cpu
+
+    - match:
+        alertname: AWS2HighMemoryUsage
+      receiver: aws2-email-receiver-memory
+
+    - match:
+        alertname: AWS2HighDiskUsage
+      receiver: aws2-email-receiver-disk
+
+    - match:
+        alertname: MRSPLogStaleAlert
+      receiver: email-receiver-mrsp-logstale
+
+    - match:
+        alertname: TCIBLogStaleAlert
+      receiver: email-receiver-tcib-logstale
+
+    - match:
+        alertname: ServerDown
+      receiver: serverdown-email
+
+    - match:   # ✅ VTS connector alerts
+        alertname: VTSDown
+      receiver: email-receiver-vts
+
+    - match:   # ✅ Issuance service alerts
+        alertname: IssuanceServiceDown
+      receiver: email-receiver-issuance
+
+    - match:   # ✅ Tomcat HTTP error alerts
+        alertname: TomcatHTTPError
+      receiver: email-receiver-tomcat
+
+receivers:
+  - name: email-receiver
+    email_configs:
+      - to: 'SOC_team@xyz.com, cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High CPU Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_cpu.tmpl" . }}'
+
+  - name: email-receiver-memory
+    email_configs:
+      - to: 'SOC_Support@xyz.com, cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High Memory Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_memory.tmpl" . }}'
+
+  - name: email-receiver-disk
+    email_configs:
+      - to: 'SOC_Support@xyz.com, cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High Disk Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_disk.tmpl" . }}'
+
+  - name: aws2-email-receiver-cpu
+    email_configs:
+      - to: 'SOC_Support@xyz.com, devops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High CPU Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_cpu.tmpl" . }}'
+
+  - name: aws2-email-receiver-memory
+    email_configs:
+      - to: 'SOC_Support@xyz.com, devops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High Memory Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_memory.tmpl" . }}'
+
+  - name: aws2-email-receiver-disk
+    email_configs:
+      - to: 'SOC_Support@terrapay.com, devops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "High Disk Usage detected on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_disk.tmpl" . }}'
+
+  - name: email-receiver-mrsp-logstale
+    email_configs:
+      - to: 'SOC_Support@xyz.com, cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "MRSP Stale Log Alert: {{ .CommonLabels.instance }} - {{ .CommonLabels.log_file }}"
+        html: '{{ template "custom_logstale_mrsp.tmpl" . }}'
+
+  - name: email-receiver-tcib-logstale
+    email_configs:
+      - to: 'SOC_Support@xyz.com, cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "TCIB Stale Log Alert: {{ .CommonLabels.instance }} - {{ .CommonLabels.log_file }}"
+        html: '{{ template "custom_logstale_tcib.tmpl" . }}'
+
+  - name: serverdown-email
+    email_configs:
+      - to: 'cloud.support@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "🚨 Server Down: {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_down.tmpl" . }}'
+
+  - name: email-receiver-vts  
+    email_configs:
+      - to: 'eliya.s@xyz.com, devops@xyz.com, paymentcardops@xyz.com, issuance-techops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "🚨 VTS Connector Issue on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_vts.tmpl" . }}'
+
+  - name: email-receiver-issuance 
+    email_configs:
+      - to: 'eliya.s@xyz.com, devops@xyz.com, paymentcardops@xyz.com, issuance-techops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "🚨 Issuance Service Down on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_issuance.tmpl" . }}'
+
+  - name: email-receiver-tomcat   
+    email_configs:
+      - to: 'devopsdl@xyz.com, paymentcardops@xyz.com, issuance-techops@xyz.com'
+        send_resolved: true
+        headers:
+          Subject: "🚨 Tomcat HTTP Error on {{ .CommonLabels.instance }}"
+        html: '{{ template "custom_tomcat.tmpl" . }}'
+
