@@ -1,0 +1,15 @@
+groups:
+  - name: disk-alerts
+    rules:
+      - alert: HighDiskUsage
+        expr: (node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} - node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"})
+              / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"} * 100 > 90
+        for: 15m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Disk usage detected"
+          description: "Disk usage is {{ printf \"%.2f\" $value }}% on instance {{ $labels.instance }} (mount: {{ $labels.mountpoint }})"
+          disk_usage: "{{ printf \"%.2f\" $value }}"
+          mount: "{{ $labels.mountpoint }}"
+
