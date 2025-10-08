@@ -1,0 +1,13 @@
+groups:
+  - name: memory-alerts
+    rules:
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 97
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Memory usage detected"
+          description: "Memory usage is {{ printf \"%.2f\" $value }}% on instance {{ $labels.instance }}"
+          memory_usage: "{{ printf \"%.2f\" $value }}"
+
