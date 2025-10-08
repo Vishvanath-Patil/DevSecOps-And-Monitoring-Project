@@ -1,0 +1,36 @@
+{{ define "custom_cpu.tmpl" }}
+{{ range .Alerts }}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>High CPU Alert</title>
+</head>
+<body style="margin:0;padding:30px;font-family:'Segoe UI', Tahoma, sans-serif;background:#ffffff;color:#333;">
+  <h2 style="color:#e63946;">High CPU Usage Detected</h2>
+
+  <p style="font-size:16px;">
+    <strong style="color:#1d3557;">{{ .Labels.instance }}</strong> has sustained high CPU usage of
+    <strong style="color:#e76f51;">{{ .Annotations.cpu_usage }}%</strong> for over 10 minutes.
+  </p>
+
+  <p style="font-size:15px;">💻 <strong>Server Name:</strong> {{ .Labels.instance }}</p>
+  <p style="font-size:15px;">📊 <strong>Current Usage:</strong> {{ .Annotations.cpu_usage }}%</p>
+  <p style="margin-top:20px;font-size:15px;">
+  ⚙️ <strong>Action Required:</strong> Assess system resource utilization and analyze running processes using the commands below:
+  <br><br>
+  🔍 <code style="background:#f1f1f1;padding:2px 6px;border-radius:4px;display:inline-block;">top -o %CPU</code><br>
+  🔍 <code style="background:#f1f1f1;padding:2px 6px;border-radius:4px;display:inline-block;">top -i</code>
+  <br><br>
+  📋 <strong>Recommended Steps:</strong> Identify processes consuming excessive CPU. Correlate findings with the application or service owners to validate if the behavior is expected or indicative of an underlying issue.
+  <br><br>
+  📌 <strong>Operational Impact:</strong> Persistent high CPU usage may result in degraded application performance, latency in critical transactions, or system instability. Prompt analysis and remediation are essential to ensure continued service availability and performance.
+  </p>
+  <p style="font-size:12px;color:#999;margin-top:40px;">
+    🚨 This is an automated alert from Alertmanager.
+  </p>
+</body>
+</html>
+{{ end }}
+{{ end }}
+
