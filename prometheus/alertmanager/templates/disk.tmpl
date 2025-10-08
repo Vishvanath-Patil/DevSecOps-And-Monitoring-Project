@@ -1,0 +1,41 @@
+{{ define "custom_disk.tmpl" }}
+{{ range .Alerts }}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>High Disk Usage Alert</title>
+</head>
+<body style="margin:0;padding:30px;font-family:'Segoe UI', Tahoma, sans-serif;background:#ffffff;color:#333;">
+  <h2 style="color:#e63946;">High Disk Usage Detected</h2>
+
+  <p style="font-size:16px;">
+    <strong style="color:#1d3557;">{{ .Labels.instance }}</strong> is experiencing high disk usage on 
+    <strong style="color:#1d3557;">{{ .Labels.mountpoint }}</strong>:
+    <strong style="color:#e76f51;">{{ .Annotations.disk_usage }}%</strong> used for over 5 minutes.
+  </p>
+
+  <p style="font-size:15px;">💻 <strong>Server:</strong> {{ .Labels.instance }}</p>
+  <p style="font-size:15px;">📁 <strong>Mount Point:</strong> {{ .Labels.mountpoint }}</p>
+  <p style="font-size:15px;">📊 <strong>Usage:</strong> {{ .Annotations.disk_usage }}%</p>
+
+  <p style="margin-top:20px;font-size:15px;">
+    ⚙️ <strong>Action Required:</strong> Assess disk utilization and perform cleanup or escalation:
+    <br><br>
+    🔍 <code style="background:#f1f1f1;padding:2px 6px;border-radius:4px;display:inline-block;">df -h</code><br>
+    🔍 <code style="background:#f1f1f1;padding:2px 6px;border-radius:4px;display:inline-block;">du -sh /*</code><br>
+    🔍 <code style="background:#f1f1f1;padding:2px 6px;border-radius:4px;display:inline-block;">ncdu /</code> (if installed)
+    <br><br>
+    📋 <strong>Recommended Steps:</strong> Identify large files/directories, clean up old logs or data, and consult with the application team regarding space consumption trends.
+    <br><br>
+    📌 <strong>Operational Impact:</strong> High disk usage may cause service interruptions, log write failures, or system crashes. Timely action is vital for stability and uptime.
+  </p>
+
+  <p style="font-size:12px;color:#999;margin-top:40px;">
+    🚨 This is an automated alert from Alertmanager.
+  </p>
+</body>
+</html>
+{{ end }}
+{{ end }}
+
